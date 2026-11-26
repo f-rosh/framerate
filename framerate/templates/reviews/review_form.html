@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}{% if review %}Edit Review{% else %}Write a Review{% endif %} — FrameRate{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card bg-dark border-secondary">
+            <div class="card-body">
+                {% if review %}
+                    <h2 class="text-warning mb-1">Edit Review</h2>
+                    <p class="text-muted small mb-4">{{ review.movie.title }}</p>
+                {% else %}
+                    <h2 class="text-warning mb-1">Write a Review</h2>
+                    <p class="text-muted small mb-4">{{ movie_data.title }} ({{ movie_data.release_year }})</p>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="form-label">Rating</label>
+                        <div class="d-flex gap-1">
+                            {% for radio in form.rating %}
+                                <label class="star-label" style="cursor: pointer;">
+                                    {{ radio.tag }}
+                                    <span class="material-icons star" style="font-size: 2rem;">star</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tag to a circle (optional)</label>
+                        {{ form.circle }}
+                        <div class="form-text">Only circles you've joined appear here.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Your Review</label>
+                        {{ form.body }}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            {% if review %}Update{% else %}Post Review{% endif %}
+                        </button>
+                        {% if review %}
+                            <a href="{% url 'review_detail' review.id %}" class="btn btn-outline-light">Cancel</a>
+                        {% else %}
+                            <a href="{% url 'movie_detail' movie_data.movie.tmdb_id %}" class="btn btn-outline-light">Cancel</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.star-label input[type="radio"] { display: none; }
+.star-label .star { color: #555; transition: color 0.15s; }
+.star-label:hover .star,
+.star-label input:checked + .star { color: #E5B143; }
+</style>
+{% endblock %}

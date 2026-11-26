@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Circles — FrameRate{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="text-warning mb-0">Circles</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'circle_found' %}" class="btn btn-warning">
+            <span class="material-icons align-middle" style="font-size: 18px;">add</span>
+            Found a Circle
+        </a>
+    {% endif %}
+</div>
+
+<p class="text-muted mb-4">
+    Topic-based communities for movie lovers. Join one to see what people in your niche are watching.
+</p>
+
+<!-- Topic filter chips -->
+<div class="mb-4">
+    <a href="{% url 'circle_list' %}{% if search %}?q={{ search }}{% endif %}"
+       class="badge me-1 {% if not topic_filter %}bg-warning{% else %}bg-secondary{% endif %} text-decoration-none">
+        All
+    </a>
+    {% for value, label in topic_types %}
+        <a href="{% url 'circle_list' %}?topic={{ value }}{% if search %}&q={{ search }}{% endif %}"
+           class="badge me-1 {% if topic_filter == value %}bg-warning{% else %}bg-secondary{% endif %} text-decoration-none">
+            {{ label }}
+        </a>
+    {% endfor %}
+</div>
+
+<!-- Circle cards -->
+<div class="row">
+    {% for circle in circles %}
+    <div class="col-md-4 mb-4">
+        <a href="{% url 'circle_detail' circle.slug %}" class="text-decoration-none">
+            <div class="card bg-dark border-secondary h-100 circle-card">
+                <div class="card-body">
+                    <h5 class="text-warning mb-1">{{ circle.name }}</h5>
+                    <span class="badge bg-secondary mb-2">
+                        {{ circle.get_topic_type_display }}: {{ circle.topic_value }}
+                    </span>
+                    {% if circle.description %}
+                        <p class="text-muted small">{{ circle.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    <div class="d-flex justify-content-between text-muted small mt-3">
+                        <span>👥 {{ circle.member_count }} members</span>
+                        <span>📅 {{ circle.created_at|date:"M Y" }}</span>
+                    </div>
+                    {% if circle.current_user_role %}
+                        <span class="circle-badge mt-2 d-inline-block">
+                            You: {{ circle.current_user_role|title }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5">
+        <span class="material-icons" style="font-size: 64px;">groups</span>
+        <p class="mt-2">No circles yet. Be the first to found one!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+.circle-card {
+    transition: transform 0.2s;
+}
+.circle-card:hover {
+    transform: translateY(-4px);
+}
+</style>
+{% endblock %}

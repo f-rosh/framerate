@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Found a Circle — FrameRate{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card bg-dark border-secondary">
+            <div class="card-body">
+                <h2 class="text-warning mb-3">Found a Circle</h2>
+                <p class="text-muted small mb-4">
+                    Create a topic-based community. You'll be the founder; anyone can join as a member,
+                    and you can promote members to moderator.
+                </p>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors|join:", " }}
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Circle Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger small">{{ form.name.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Topic Type</label>
+                        {{ form.topic_type }}
+                    </div>
+
+                    <div class="mb-3" id="genre-field">
+                        <label class="form-label">Pick a Genre</label>
+                        {{ form.genre_choice }}
+                        <div class="form-text">
+                            Required for genre circles. We'll auto-fill the TMDb ID.
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="topic-value-field">
+                        <label class="form-label">Topic Display Name</label>
+                        {{ form.topic_value }}
+                        <div class="form-text">
+                            e.g. "Christopher Nolan", "Robert Pattinson", "Marvel Studios".
+                            Required for director/actor/franchise circles.
+                        </div>
+                        {% if form.topic_value.errors %}
+                            <div class="text-danger small">{{ form.topic_value.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3" id="topic-id-field">
+                        <label class="form-label">TMDb ID</label>
+                        {{ form.topic_value_id }}
+                        <div class="form-text">
+                            For directors/actors: the person ID (look it up on TMDb). For franchises: the
+                            studio ID. Example: 525 = Christopher Nolan, 420 = Marvel Studios.
+                        </div>
+                        {% if form.topic_value_id.errors %}
+                            <div class="text-danger small">{{ form.topic_value_id.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">Create Circle</button>
+                        <a href="{% url 'circle_list' %}" class="btn btn-outline-light">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateFormVisibility() {
+    const type = document.getElementById('id_topic_type').value;
+    const genreField = document.getElementById('genre-field');
+    const topicValueField = document.getElementById('topic-value-field');
+    const topicIdField = document.getElementById('topic-id-field');
+    if (type === 'genre') {
+        genreField.style.display = 'block';
+        topicValueField.style.display = 'none';
+        topicIdField.style.display = 'none';
+    } else {
+        genreField.style.display = 'none';
+        topicValueField.style.display = 'block';
+        topicIdField.style.display = 'block';
+    }
+}
+document.getElementById('id_topic_type').addEventListener('change', updateFormVisibility);
+document.addEventListener('DOMContentLoaded', updateFormVisibility);
+</script>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}FrameRate — Home{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="text-center my-5">
+    <h1 class="display-3 fw-bold text-warning">FrameRate</h1>
+    <p class="lead text-muted">A community-driven movie review platform.</p>
+    <p class="text-light">Where every opinion has a home.</p>
+</div>
+
+<!-- Trending this week -->
+<h3 class="text-warning mb-3">
+    <span class="material-icons align-middle">trending_up</span>
+    Trending This Week
+</h3>
+
+{% if trending %}
+<div class="row mb-5">
+    {% for movie in trending %}
+    <div class="col-6 col-md-2 mb-3">
+        <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none">
+            <div class="movie-card card bg-dark border-secondary h-100">
+                {% if movie.poster_path %}
+                    <img src="{{ trending_image_base }}{{ movie.poster_path }}"
+                         class="card-img-top" alt="{{ movie.title }}">
+                {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 225px;">
+                        <span class="material-icons text-light" style="font-size: 48px;">movie</span>
+                    </div>
+                {% endif %}
+                <div class="card-body p-2">
+                    <h6 class="card-title text-light mb-0" style="font-size: 0.85rem;">
+                        {{ movie.title|truncatewords:4 }}
+                    </h6>
+                    <small class="text-muted">
+                        {{ movie.release_date|slice:":4"|default:"—" }}
+                    </small>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted mb-5">Trending movies are unavailable right now (TMDb didn't respond). Try again in a moment.</p>
+{% endif %}
+
+<hr class="border-secondary my-4">
+
+<!-- Recent community reviews -->
+<h3 class="text-warning mb-3">
+    <span class="material-icons align-middle">rate_review</span>
+    Recent Reviews
+</h3>
+
+{% if recent_reviews %}
+<div class="row">
+    {% for review in recent_reviews %}
+    <div class="col-md-6 mb-3">
+        <div class="review-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <a href="{% url 'profile' review.user.username %}" class="text-warning text-decoration-none">
+                        <strong>@{{ review.user.username }}</strong>
+                    </a>
+                    <span class="text-muted small ms-2">{{ review.created_at|date:"M d, Y" }}</span>
+                </div>
+                <span class="star-rating">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle; color: #E5B143;">star</span>
+                        {% else %}
+                            <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle; color: #555;">star_border</span>
+                        {% endif %}
+                    {% endfor %}
+                </span>
+            </div>
+            <h6 class="text-light mt-2 mb-1">
+                <a href="{% url 'movie_detail' review.movie.tmdb_id %}" class="text-decoration-none text-light">
+                    {{ review.movie.title }}
+                </a>
+            </h6>
+            <p class="text-muted small mb-2">{{ review.body|truncatewords:25 }}</p>
+            <div class="d-flex align-items-center gap-2">
+                {% if review.circle %}
+                    <a href="{% url 'circle_detail' review.circle.slug %}" class="circle-badge text-decoration-none">
+                        {{ review.circle.name }}
+                    </a>
+                {% endif %}
+                <a href="{% url 'review_detail' review.id %}" class="text-warning text-decoration-none small ms-auto">
+                    View full review →
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted text-center py-4">
+    No reviews yet.
+    {% if user.is_authenticated %}
+        <a href="{% url 'search' %}" class="text-warning">Search a movie and write the first one.</a>
+    {% endif %}
+</p>
+{% endif %}
+{% endblock %}

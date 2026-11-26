@@ -1,0 +1,92 @@
+/* FrameRate custom styles */
+body {
+    font-family: 'Archivo', sans-serif;
+    background-color: #0E0E10;
+    color: #F5F5F0;
+}
+
+/* Movie cards */
+.movie-card {
+    transition: transform 0.2s;
+}
+.movie-card:hover {
+    transform: translateY(-4px);
+}
+
+/* Review cards */
+.review-card {
+    background-color: #1F1F25;
+    border: 1px solid rgba(245,245,240,0.1);
+    border-radius: 8px;
+}
+
+/* Star rating */
+.star-rating {
+    color: #E5B143;
+    font-size: 1.2rem;
+}
+
+/* Circle badge */
+.circle-badge {
+    background-color: rgba(229,177,67,0.15);
+    color: #E5B143;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Live search dropdown hover */
+#search-dropdown a:hover {
+    background-color: rgba(229, 177, 67, 0.1);
+}
+
+/* User Avatars (Rounded Square) */
+.profile-avatar {
+    width: 180px;
+    height: 180px;
+    min-width: 180px;
+    border-radius: 22px;
+    object-fit: cover;
+    display: block;
+    border: 2px solid rgba(245, 245, 240, 0.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* Smaller variants for navbar, comments, and review cards */
+.profile-avatar-md {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
+}
+
+.profile-avatar-sm {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 8px;
+}
+
+/* Colored icon placeholder when user has no uploaded image */
+.avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #E5B143;
+    color: #0E0E10;
+    user-select: none;
+}
+
+.profile-avatar .material-icons {
+    font-size: 64px;
+    line-height: 1;
+}
+
+.profile-avatar-md .material-icons {
+    font-size: 26px;
+}
+
+.profile-avatar-sm .material-icons {
+    font-size: 18px;
+}

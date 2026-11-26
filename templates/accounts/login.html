@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Login — FrameRate{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card bg-dark border-secondary">
+            <div class="card-body">
+                <h2 class="text-center text-warning mb-4">Login to FrameRate</h2>
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Invalid username or password.
+                    </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" autocomplete="username">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" autocomplete="current-password">
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning">Login</button>
+                    </div>
+                </form>
+                
+                <p class="text-center mt-3 mb-0">
+                    <small>New here? <a href="{% url 'signup' %}" class="text-warning">Sign up</a></small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll('form[method="post"]').forEach(function (f) {
+    f.addEventListener('submit', function () {
+      var btn = f.querySelector('button[type=submit]');
+      if (btn) { btn.disabled = true; btn.textContent = 'Logging in...'; }
+    });
+  });
+</script>
+{% endblock %}

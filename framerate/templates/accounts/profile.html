@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile_user.username }} — FrameRate{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card bg-dark border-secondary text-center">
+            <div class="card-body">
+                <img src="{{ profile.avatar_or_default }}"
+                     alt="{{ profile_user.username }}"
+                     class="rounded-circle mb-3"
+                     width="120" height="120"
+                     style="object-fit: cover;">
+
+                <h3 class="text-warning mb-1">@{{ profile_user.username }}</h3>
+                <p class="text-muted small">Member since {{ profile_user.date_joined|date:"M Y" }}</p>
+
+                {% if profile.bio %}
+                    <p class="text-light">{{ profile.bio }}</p>
+                {% endif %}
+
+                {% if profile.favorite_genres %}
+                    <p class="text-muted small">
+                        <strong class="text-warning">Favorite genres:</strong> {{ profile.favorite_genres }}
+                    </p>
+                {% endif %}
+
+                {% if request.user == profile_user %}
+                    <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-outline-warning mt-2">
+                        <span class="material-icons align-middle" style="font-size: 18px;">edit</span>
+                        Edit Profile
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0 text-warning">Recent Reviews</h5>
+            </div>
+            <div class="card-body">
+                {% if reviews %}
+                    {% for review in reviews %}
+                        <div class="review-card p-3 mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'review_detail' review.id %}" class="text-decoration-none text-light">
+                                    <strong>{{ review.movie.title }}</strong>
+                                </a>
+                                <span class="star-rating">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <span class="material-icons" style="font-size: 1rem; vertical-align: middle; color: #E5B143;">star</span>
+                                        {% else %}
+                                            <span class="material-icons" style="font-size: 1rem; vertical-align: middle; color: #555;">star_border</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-0 mt-1">{{ review.body|truncatewords:30 }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No reviews yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

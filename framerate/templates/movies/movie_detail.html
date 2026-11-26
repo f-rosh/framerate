@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ movie_data.title }} — FrameRate{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Poster -->
+    <div class="col-md-3">
+        {% if movie_data.poster_url %}
+            <img src="{{ movie_data.poster_url }}"
+                 class="img-fluid rounded shadow"
+                 alt="{{ movie_data.title }}">
+        {% else %}
+            <div class="bg-secondary d-flex align-items-center justify-content-center rounded"
+                 style="height: 400px;">
+                <span class="material-icons text-light" style="font-size: 80px;">movie</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Movie info -->
+    <div class="col-md-9">
+        <h1 class="text-warning">{{ movie_data.title }}</h1>
+        <p class="text-muted">
+            {{ movie_data.release_year }}
+            {% if movie_data.runtime %}· {{ movie_data.runtime }} min{% endif %}
+            · TMDb: {{ movie_data.tmdb_rating }}/10
+        </p>
+
+        {% if movie_data.genres %}
+            <div class="mb-3">
+                {% for genre in movie_data.genres %}
+                    <span class="badge bg-secondary me-1">{{ genre }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if movie_data.plot %}
+            <p class="text-light">{{ movie_data.plot }}</p>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'write_review' movie.tmdb_id %}" class="btn btn-warning mt-2">
+                <span class="material-icons align-middle" style="font-size: 18px;">rate_review</span>
+                Write a Review
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline-warning mt-2">
+                Login to write a review
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<hr class="border-secondary my-4">
+
+<!-- Community Reviews -->
+<h3 class="text-warning mb-3">Community Reviews</h3>
+
+{% if reviews %}
+    {% for review in reviews %}
+    <div class="review-card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <a href="{% url 'profile' review.user.username %}" class="text-warning text-decoration-none">
+                    <strong>@{{ review.user.username }}</strong>
+                </a>
+                <span class="text-muted small ms-2">{{ review.created_at|date:"M d, Y" }}</span>
+            </div>
+            <span class="star-rating">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= review.rating %}
+                        <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle; color: #E5B143;">star</span>
+                    {% else %}
+                        <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle; color: #555;">star_border</span>
+                    {% endif %}
+                {% endfor %}
+            </span>
+        </div>
+
+        <p class="text-light mt-2 mb-2">{{ review.body|truncatewords:40 }}</p>
+
+        <div class="d-flex align-items-center gap-3 mt-2 pt-2 border-top border-secondary">
+            {% if review.circle %}
+                <a href="{% url 'circle_detail' review.circle.slug %}" class="circle-badge text-decoration-none">
+                    {{ review.circle.name }}
+                </a>
+            {% endif %}
+            <span class="text-muted small">
+                <span class="material-icons align-middle" style="font-size: 14px;">chat_bubble_outline</span>
+                {{ review.comments.count }}
+            </span>
+            <a href="{% url 'review_detail' review.id %}" class="text-warning text-decoration-none small ms-auto">
+                View full review →
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="text-muted text-center py-4">
+        No reviews yet.
+        {% if user.is_authenticated %}
+            <a href="{% url 'write_review' movie.tmdb_id %}" class="text-warning">Be the first to review.</a>
+        {% endif %}
+    </p>
+{% endif %}
+{% endblock %}

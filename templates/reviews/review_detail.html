@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ review.movie.title }} — Review by {{ review.user.username }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <!-- Review -->
+        <div class="review-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <a href="{% url 'profile' review.user.username %}" class="text-warning text-decoration-none">
+                        <strong>@{{ review.user.username }}</strong>
+                    </a>
+                    <span class="text-muted small ms-2">{{ review.created_at|date:"M d, Y" }}</span>
+                    {% if review.created_at != review.updated_at %}
+                        <span class="text-muted small">(edited)</span>
+                    {% endif %}
+                    {% if review.circle %}
+                        <a href="{% url 'circle_detail' review.circle.slug %}" class="circle-badge text-decoration-none ms-2">
+                            {{ review.circle.name }}
+                        </a>
+                    {% endif %}
+                </div>
+                <span class="star-rating" style="font-size: 1.5rem; letter-spacing: 2px;">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <span class="material-icons" style="font-size: 1.3rem; vertical-align: middle; color: #E5B143;">star</span>
+                        {% else %}
+                            <span class="material-icons" style="font-size: 1.3rem; vertical-align: middle; color: #555;">star_border</span>
+                        {% endif %}
+                    {% endfor %}
+                </span>
+            </div>
+
+            <h4 class="text-light mb-2">
+                <a href="{% url 'movie_detail' review.movie.tmdb_id %}" class="text-decoration-none text-light">
+                    {{ review.movie.title }}
+                </a>
+            </h4>
+
+            <p class="text-light" style="white-space: pre-wrap;">{{ review.body }}</p>
+
+            <!-- Vote buttons -->
+            <div class="d-flex align-items-center gap-3 mt-3 pt-3 border-top border-secondary">
+                <button class="btn btn-sm {% if user_vote.vote_type == 'like' %}btn-warning{% else %}btn-outline-secondary{% endif %}"
+                        onclick="voteReview({{ review.id }}, 'like')" id="like-btn">
+                    👍 <span id="like-count">{{ likes }}</span>
+                </button>
+                <button class="btn btn-sm {% if user_vote.vote_type == 'dislike' %}btn-danger{% else %}btn-outline-secondary{% endif %}"
+                        onclick="voteReview({{ review.id }}, 'dislike')" id="dislike-btn">
+                    👎 <span id="dislike-count">{{ dislikes }}</span>
+                </button>
+                <span class="text-muted small ms-auto">{{ likes|add:dislikes }} total votes</span>
+            </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0 text-warning">Comments</h5>
+            </div>
+            <div class="card-body">
+                {% if comments %}
+                    {% for comment in comments %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'profile' comment.user.username %}" class="text-warning text-decoration-none small">
+                                    <strong>@{{ comment.user.username }}</strong>
+                                </a>
+                                <span class="text-muted" style="font-size: 11px;">{{ comment.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <p class="text-light small mb-2">{{ comment.body }}</p>
+
+                            {% if user.is_authenticated %}
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                        onclick="document.getElementById('reply-{{ comment.id }}').style.display='block'">
+                                    Reply
+                                </button>
+                                <div id="reply-{{ comment.id }}" style="display: none;" class="mt-2">
+                                    <form method="post" action="{% url 'add_comment' review.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                        <textarea name="body" class="form-control form-control-sm mb-2" rows="2" placeholder="Reply..." required></textarea>
+                                        <button type="submit" class="btn btn-sm btn-warning">Post Reply</button>
+                                    </form>
+                                </div>
+                            {% endif %}
+
+                            {% for reply in comment.replies.all %}
+                                <div class="ms-4 mt-2 ps-3 border-start border-secondary">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{% url 'profile' reply.user.username %}" class="text-warning text-decoration-none small">
+                                            <strong>@{{ reply.user.username }}</strong>
+                                        </a>
+                                        <span class="text-muted" style="font-size: 11px;">{{ reply.created_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    <p class="text-light small mb-0">{{ reply.body }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <hr class="border-secondary">
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-3">No comments yet.</p>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'add_comment' review.id %}" class="mt-3">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <textarea name="body" class="form-control" rows="3" placeholder="Write a comment..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-warning">Post Comment</button>
+                    </form>
+                {% else %}
+                    <p class="text-muted text-center mt-3">
+                        <a href="{% url 'login' %}" class="text-warning">Login</a> to comment.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <div class="card bg-dark border-secondary">
+            <div class="card-body text-center">
+                {% if review.movie.poster_url %}
+                    <img src="{{ review.movie.poster_url }}" class="img-fluid rounded mb-2" alt="{{ review.movie.title }}">
+                {% endif %}
+                <a href="{% url 'movie_detail' review.movie.tmdb_id %}" class="text-warning text-decoration-none">
+                    <strong>{{ review.movie.title }}</strong>
+                </a>
+            </div>
+        </div>
+        {% if review.user == request.user %}
+            <a href="{% url 'edit_review' review.id %}" class="btn btn-outline-warning w-100 mt-3">Edit Review</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function voteReview(reviewId, voteType) {
+    const fd = new FormData();
+    fd.append('vote_type', voteType);
+    fetch(`/review/${reviewId}/vote/`, {
+        method: 'POST', body: fd,
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('like-count').textContent = data.likes;
+        document.getElementById('dislike-count').textContent = data.dislikes;
+        document.getElementById('like-btn').className = 'btn btn-sm ' + (data.user_vote === 'like' ? 'btn-warning' : 'btn-outline-secondary');
+        document.getElementById('dislike-btn').className = 'btn btn-sm ' + (data.user_vote === 'dislike' ? 'btn-danger' : 'btn-outline-secondary');
+    });
+}
+function getCookie(name) {
+    const v = `; ${document.cookie}`;
+    const p = v.split(`; ${name}=`);
+    if (p.length === 2) return p.pop().split(';').shift();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}{{ circle.name }} — FrameRate{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        <h1 class="text-warning mb-1">{{ circle.name }}</h1>
+        <div class="mb-2">
+            <span class="badge bg-secondary">
+                {{ circle.get_topic_type_display }}: {{ circle.topic_value }}
+            </span>
+            <span class="text-muted small ms-2">👥 {{ circle.member_count }} members</span>
+            <span class="text-muted small ms-2">📅 Founded {{ circle.created_at|date:"M Y" }}</span>
+        </div>
+        {% if circle.description %}
+            <p class="text-light">{{ circle.description }}</p>
+        {% endif %}
+    </div>
+    <div class="text-end">
+        {% if user_membership %}
+            {% if user_membership.role == 'founder' %}
+                <span class="badge bg-warning mb-2 d-block">You: Founder</span>
+            {% elif user_membership.role == 'moderator' %}
+                <span class="badge bg-info mb-2 d-block">You: Moderator</span>
+            {% else %}
+                <span class="badge bg-secondary mb-2 d-block">You: Member</span>
+            {% endif %}
+            {% if user_membership.role != 'founder' %}
+                <form method="post" action="{% url 'circle_leave' circle.slug %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Leave Circle</button>
+                </form>
+            {% endif %}
+        {% elif user.is_authenticated %}
+            <form method="post" action="{% url 'circle_join' circle.slug %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Join Circle</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline-warning">Login to Join</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Featured Movies bar -->
+<h5 class="text-warning mb-3">Featured Movies</h5>
+<div class="d-flex overflow-auto pb-3 mb-4" style="gap: 12px;">
+    {% for movie in featured_movies %}
+    <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none" style="flex: 0 0 110px;">
+        {% if movie.poster_url %}
+            <img src="{{ movie.poster_url }}" class="rounded shadow"
+                 style="width: 110px; height: 165px; object-fit: cover;"
+                 alt="{{ movie.title }}">
+        {% else %}
+            <div class="bg-secondary d-flex align-items-center justify-content-center rounded"
+                 style="width: 110px; height: 165px;">
+                <span class="material-icons text-light" style="font-size: 32px;">movie</span>
+            </div>
+        {% endif %}
+        <div class="small text-light text-center mt-1 text-truncate" style="width: 110px;">
+            {{ movie.title }}
+        </div>
+        <div class="text-muted text-center" style="font-size: 11px;">
+            {{ movie.release_year|default:"—" }}
+        </div>
+    </a>
+    {% empty %}
+    <p class="text-muted small">
+        No featured movies yet. (Founder can add a TMDb ID when creating the circle.)
+    </p>
+    {% endfor %}
+</div>
+
+<hr class="border-secondary my-4">
+
+<div class="row">
+    <!-- Main column: Reviews -->
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-warning mb-0">Reviews in this Circle</h3>
+        </div>
+
+        <!-- Inline movie search → post review -->
+        {% if user_membership %}
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-body">
+                <h6 class="text-warning mb-2">Post a review to this circle</h6>
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Search a movie to review..."
+                       id="circle-movie-search">
+                <div id="circle-movie-results" class="mt-2"
+                     style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Sort chips -->
+        <div class="mb-3">
+            <a href="?sort=top"
+               class="badge {% if sort == 'top' %}bg-warning{% else %}bg-secondary{% endif %} me-1 text-decoration-none">
+                Top
+            </a>
+            <a href="?sort=new"
+               class="badge {% if sort == 'new' %}bg-warning{% else %}bg-secondary{% endif %} me-1 text-decoration-none">
+                New
+            </a>
+            <a href="?sort=controversial"
+               class="badge {% if sort == 'controversial' %}bg-warning{% else %}bg-secondary{% endif %} me-1 text-decoration-none">
+                Controversial
+            </a>
+        </div>
+
+        {% for review in reviews %}
+        <div class="review-card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <a href="{% url 'profile' review.user.username %}" class="text-warning text-decoration-none">
+                        <strong>@{{ review.user.username }}</strong>
+                    </a>
+                    <span class="text-muted small ms-2">{{ review.created_at|date:"M d, Y" }}</span>
+                </div>
+                <span class="star-rating">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle; color: #E5B143;">star</span>
+                        {% else %}
+                            <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle; color: #555;">star_border</span>
+                        {% endif %}
+                    {% endfor %}
+                </span>
+            </div>
+            <h6 class="text-light mt-2 mb-1">
+                <a href="{% url 'movie_detail' review.movie.tmdb_id %}" class="text-decoration-none text-light">
+                    {{ review.movie.title }}
+                </a>
+            </h6>
+            <p class="text-light small">{{ review.body|truncatewords:40 }}</p>
+            <div class="d-flex align-items-center gap-3 mt-2 pt-2 border-top border-secondary">
+                <span class="text-muted small">{{ review.votes.count }} votes · {{ review.comments.count }} comments</span>
+                <a href="{% url 'review_detail' review.id %}" class="text-warning text-decoration-none small ms-auto">
+                    View full review →
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted text-center py-4">
+            No reviews in this circle yet.
+            {% if user_membership %}Be the first to post!{% endif %}
+        </p>
+        {% endfor %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Top contributors -->
+        <div class="card bg-dark border-secondary mb-3">
+            <div class="card-header border-secondary">
+                <h6 class="mb-0 text-warning">Top Contributors</h6>
+            </div>
+            <div class="card-body">
+                {% for tc in top_contributors %}
+                <div class="d-flex justify-content-between mb-1">
+                    <a href="{% url 'profile' tc.user__username %}" class="text-warning text-decoration-none small">
+                        @{{ tc.user__username }}
+                    </a>
+                    <span class="text-muted small">{{ tc.review_count }} review{{ tc.review_count|pluralize }}</span>
+                </div>
+                {% empty %}
+                <p class="text-muted small mb-0">No contributors yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Members -->
+        <div class="card bg-dark border-secondary mb-3">
+            <div class="card-header border-secondary">
+                <h6 class="mb-0 text-warning">Members</h6>
+            </div>
+            <div class="card-body">
+                {% for m in memberships %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <a href="{% url 'profile' m.user.username %}" class="text-warning text-decoration-none small">
+                            @{{ m.user.username }}
+                        </a>
+                        {% if m.role == 'founder' %}
+                            <span class="badge bg-warning ms-1">Founder</span>
+                        {% elif m.role == 'moderator' %}
+                            <span class="badge bg-info ms-1">Mod</span>
+                        {% endif %}
+                    </div>
+                    {% if user_membership.role == 'founder' and m.role != 'founder' %}
+                    <form method="post" action="{% url 'circle_toggle_mod' circle.slug m.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            {% if m.role == 'moderator' %}Demote{% else %}Promote{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <p class="text-muted small mb-0">No members yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Related circles -->
+        {% if related_circles %}
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary">
+                <h6 class="mb-0 text-warning">Related Circles</h6>
+            </div>
+            <div class="card-body">
+                {% for rc in related_circles %}
+                <a href="{% url 'circle_detail' rc.slug %}" class="d-block text-decoration-none text-warning small mb-1">
+                    {{ rc.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Inline movie search that reuses the /api/search/ endpoint
+const searchInput = document.getElementById('circle-movie-search');
+if (searchInput) {
+    const resultsDiv = document.getElementById('circle-movie-results');
+    const slug = "{{ circle.slug }}";
+    let timer;
+    searchInput.addEventListener('input', function () {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        if (q.length < 2) {
+            resultsDiv.innerHTML = '';
+            return;
+        }
+        timer = setTimeout(() => {
+            fetch(`/api/search/?q=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.results.length) {
+                        resultsDiv.innerHTML = '<div class="text-muted small p-2">No results.</div>';
+                        return;
+                    }
+                    resultsDiv.innerHTML = data.results.map(m => `
+                        <a href="/circles/${slug}/review/new/${m.id}/" class="d-flex align-items-center p-2 text-decoration-none text-light border-bottom border-secondary">
+                            ${m.poster ? `<img src="${m.poster}" width="30" height="45" class="me-2 rounded" style="object-fit: cover;">` : '<div class="me-2" style="width:30px;height:45px;"></div>'}
+                            <div>
+                                <div class="small">${m.title}</div>
+                                <div class="text-muted" style="font-size: 10px;">${m.year || '—'}</div>
+                            </div>
+                        </a>
+                    `).join('');
+                });
+        }, 300);
+    });
+}
+</script>
+{% endblock %}

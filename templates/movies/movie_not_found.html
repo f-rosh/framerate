@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Movie Not Found — FrameRate{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <span class="material-icons text-muted" style="font-size: 80px;">movie_off</span>
+    <h2 class="text-warning mt-3">Movie Not Found</h2>
+    <p class="text-muted">We couldn't find that movie. It may have been removed from TMDb.</p>
+    <a href="{% url 'home' %}" class="btn btn-outline-warning mt-2">Back Home</a>
+</div>
+{% endblock %}

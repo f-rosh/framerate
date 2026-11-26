@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up — FrameRate{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card bg-dark border-secondary">
+            <div class="card-body">
+                <h2 class="text-center text-warning mb-4">Join FrameRate</h2>
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Please fix the errors below.
+                    </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small">{{ form.username.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small">{{ form.email.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small">{{ form.password.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password</label>
+                        {{ form.password_confirm }}
+                        {% if form.password_confirm.errors %}
+                            <div class="text-danger small">{{ form.password_confirm.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning">Create Account</button>
+                    </div>
+                </form>
+                
+                <p class="text-center mt-3 mb-0">
+                    <small>Already have an account? <a href="{% url 'login' %}" class="text-warning">Login</a></small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll('form[method="post"]').forEach(function (f) {
+    f.addEventListener('submit', function () {
+      var btn = f.querySelector('button[type=submit]');
+      if (btn) { btn.disabled = true; btn.textContent = 'Creating...'; }
+    });
+  });
+</script>
+{% endblock %}

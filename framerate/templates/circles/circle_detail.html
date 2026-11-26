@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}{{ circle.name }} — FrameRate{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Circle info -->
+    <div class="col-md-8">
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+            <h2 class="text-warning mb-0">{{ circle.name }}</h2>
+            <span class="badge bg-secondary text-capitalize">{{ circle.topic_type }}</span>
+        </div>
+        <p class="text-muted mb-2">
+            <strong class="text-warning">Topic:</strong> {{ circle.topic_value }}
+        </p>
+        {% if circle.description %}
+            <p class="text-light">{{ circle.description }}</p>
+        {% endif %}
+        <div class="d-flex align-items-center gap-3 text-muted small mb-2">
+            <span>
+                <span class="material-icons align-middle" style="font-size: 16px;">group</span>
+                {{ circle.member_count }} members
+            </span>
+            <span>
+                <span class="material-icons align-middle" style="font-size: 16px;">rate_review</span>
+                {{ reviews|length }} reviews
+            </span>
+        </div>
+
+        {% if user.is_authenticated %}
+            {% if is_member %}
+                <form method="post" action="{% url 'leave_circle' circle.slug %}" class="d-inline">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-danger btn-sm mt-2">
+                        {% if is_founder %}You founded this circle{% else %}Leave Circle{% endif %}
+                    </button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'join_circle' circle.slug %}" class="d-inline">
+                    {% csrf_token %}
+                    <button class="btn btn-warning btn-sm mt-2">Join Circle</button>
+                </form>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline-warning btn-sm mt-2">Login to join</a>
+        {% endif %}
+    </div>
+
+    <!-- Members -->
+    <div class="col-md-4">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary">
+                <h6 class="mb-0 text-warning">Members</h6>
+            </div>
+            <div class="card-body">
+                {% for m in members %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <a href="{% url 'profile' m.user.username %}" class="text-warning text-decoration-none small">
+                            @{{ m.user.username }}
+                        </a>
+                        {% if m.role == 'founder' %}
+                            <span class="circle-badge">Founder</span>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-muted small mb-0">No members yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="border-secondary my-4">
+
+<h3 class="text-warning mb-3">Reviews in this circle</h3>
+
+{% if reviews %}
+    {% for review in reviews %}
+    <div class="review-card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <a href="{% url 'profile' review.user.username %}" class="text-warning text-decoration-none">
+                    <strong>@{{ review.user.username }}</strong>
+                </a>
+                <span class="text-muted small ms-2">{{ review.created_at|date:"M d, Y" }}</span>
+            </div>
+            <span class="star-rating">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= review.rating %}
+                        <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle; color: #E5B143;">star</span>
+                    {% else %}
+                        <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle; color: #555;">star_border</span>
+                    {% endif %}
+                {% endfor %}
+            </span>
+        </div>
+        <h6 class="text-light mt-2 mb-1">
+            <a href="{% url 'movie_detail' review.movie.tmdb_id %}" class="text-decoration-none text-light">
+                {{ review.movie.title }}
+            </a>
+        </h6>
+        <p class="text-light small mb-2">{{ review.body|truncatewords:40 }}</p>
+        <a href="{% url 'review_detail' review.id %}" class="text-warning text-decoration-none small">
+            View full review →
+        </a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="text-muted text-center py-4">
+        No reviews in this circle yet.
+        {% if user.is_authenticated and is_member %}
+            <a href="{% url 'home' %}" class="text-warning">Find a movie and tag your review to this circle.</a>
+        {% endif %}
+    </p>
+{% endif %}
+{% endblock %}

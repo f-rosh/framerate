@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Search: {{ query }} — FrameRate{% endblock %}
+
+{% block content %}
+<h2 class="text-warning mb-4">Search Results</h2>
+
+{% if query %}
+    <p class="text-muted mb-4">Found {{ results|length }} result{{ results|pluralize }} for "{{ query }}"</p>
+    
+    <div class="row">
+        {% for movie in results %}
+            <div class="col-md-3 mb-4">
+                <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none">
+                    <div class="movie-card card bg-dark border-secondary h-100">
+                        {% if movie.poster_path %}
+                            <img src="https://image.tmdb.org/t/p/w300{{ movie.poster_path }}" 
+                                 class="card-img-top" alt="{{ movie.title }}">
+                        {% else %}
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
+                                <span class="material-icons text-light" style="font-size: 64px;">movie</span>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title text-light mb-1">{{ movie.title }}</h6>
+                            <small class="text-muted">
+                                {{ movie.release_date|slice:":4"|default:"—" }}
+                            </small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center text-muted py-5">
+                <span class="material-icons" style="font-size: 64px;">search_off</span>
+                <p class="mt-2">No movies found. Try a different search.</p>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-muted text-center py-5">Type something in the search bar above.</p>
+{% endif %}
+{% endblock %}
